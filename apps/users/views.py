@@ -3,9 +3,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, permissions, generics, filters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .permissions import IsSuperAdmin
 from .serializers import (UserSerializer, ProfileSerializer, ChangePasswordSerializer,
                           MyTokenRefreshSerializer, MyTokenObtainPairSerializer)
-from .permissions import IsSuperAdmin
 
 User = get_user_model()
 
