@@ -48,6 +48,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 @extend_schema(tags=['Tasks'])
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -64,18 +65,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return TaskStatusUpdateSerializer
         return TaskSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            return [(IsAdmin | IsManager | IsEmployee)()]
-
-        if self.action == 'destroy':
-            return [(IsAdmin | IsManager)()]
-
-        if self.action in ['update', 'partial_update']:
-            return [(IsAdmin | IsManager | IsEmployee)()]
-
-        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user

@@ -9,6 +9,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenOb
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.projects.models import Status, ProjectStatus
+from apps.users.models import Role
 
 User = get_user_model()
 
@@ -72,6 +73,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'role', 'fixed_salary', 'date_joined')
 
     def get_stats(self, obj):
+        allowed_roles = [Role.MANAGER, Role.EMPLOYEE, Role.AUDITOR]
+
+        if obj.role not in allowed_roles:
+            return None
+
         all_projects = (
                 obj.manager_projects.all() |
                 obj.employee_projects.all() |
