@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 
     'apps.common.apps.CommonConfig',
     'apps.users.apps.UsersConfig',
-    # 'apps.finance.apps.FinanceConfig',
+    'apps.finance.apps.FinanceConfig',
     'apps.projects.apps.ProjectsConfig',
     'apps.audit.apps.AuditConfig',
 

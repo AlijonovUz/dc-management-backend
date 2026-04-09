@@ -12,7 +12,7 @@ class Role(models.TextChoices):
 
 
 class User(AbstractUser):
-    username = models.CharField(max_length=150, unique=True, db_index=True, verbose_name="F.I.O (login uchun)")
+    username = models.CharField(max_length=150, unique=True, db_index=True, verbose_name="F.I.O")
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.EMPLOYEE, db_index=True,
                             verbose_name="Lavozim")
     fixed_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Oylik maosh")
