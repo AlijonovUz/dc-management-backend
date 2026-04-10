@@ -10,7 +10,7 @@ from unfold.admin import ModelAdmin
 
 class TaskAttachmentInline(admin.TabularInline):
     model = TaskAttachment
-    extra = 1
+    extra = 0
 
 
 class MeetingAttendanceInline(admin.TabularInline):
@@ -30,13 +30,13 @@ class ProjectAdmin(ModelAdmin):
     filter_horizontal = ('employees', 'testers')
 
     fieldsets = (
-        ('Project Info', {
+        ('Loyiha haqida ma\'lumot', {
             'fields': ('title', 'description', 'status', 'is_active')
         }),
-        ('Team', {
+        ('Jamoa', {
             'fields': ('manager', 'employees', 'testers')
         }),
-        ('Timeline', {
+        ('Vaqt jadvali', {
             'fields': ('deadline',)
         }),
     )
@@ -63,16 +63,16 @@ class TaskAdmin(ModelAdmin):
     inlines = [TaskAttachmentInline]
 
     fieldsets = (
-        ('General', {
-            'fields': ('project', 'title', 'description')
+        ('Asosiy', {
+            'fields': ('project', 'title', 'description', 'rejection_reason')
         }),
-        ('Categorization', {
+        ('Tasniflash', {
             'fields': ('status', 'priority', 'type')
         }),
-        ('Assignment & Pricing', {
-            'fields': ('assignee', 'task_price')
+        ('Topshiriq & narxlar', {
+            'fields': ('assignee', 'task_price', 'penalty_percentage')
         }),
-        ('Time Tracking & Quality', {
+        ('Vaqtni kuzatish & Sifat', {
             'fields': ('deadline', 'estimated_hours', 'actual_hours', 'reopened_count')
         }),
     )

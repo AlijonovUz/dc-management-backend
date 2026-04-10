@@ -1,11 +1,14 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Count
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.projects.models import Status, ProjectStatus
+from apps.projects.models import TaskStatus, ProjectStatus
 from apps.users.models import Role
 
 User = get_user_model()
@@ -25,14 +28,28 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def validate(self, attrs):
+        request = self.context.get('request')
+        current_user = request.user
+        input_role = attrs.get('role')
         password = attrs.get('password')
         confirm_password = attrs.get('confirm_password')
+
+        if current_user.role == Role.ADMIN:
+            if input_role in [Role.SUPERADMIN, Role.ADMIN]:
+                raise serializers.ValidationError({
+                    "role": "Siz ushbu darajadagi foydalanuvchilarni boshqara olmaysiz."
+                })
+
+            if self.instance and self.instance.role in [Role.SUPERADMIN, Role.ADMIN]:
+                raise serializers.ValidationError({
+                    "detail": "Ushbu foydalanuvchi ma'lumotlarini o'zgartirish huquqi sizda yo'q."
+                })
 
         if password is not None:
             if not password.isdigit():
                 raise serializers.ValidationError({"password": "Parol faqat raqamlardan iborat bo'lishi kerak."})
             if password != confirm_password:
-                raise serializers.ValidationError({"password": "Parollar mos kelmayapti. Qaytadan urinib ko'ring."})
+                raise serializers.ValidationError({"password": "Parollar mos kelmayapti."})
 
         return attrs
 
@@ -59,7 +76,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         if password:
             instance.set_password(password)
-            instance.must_change_password = True
+            instance.change_password = True
 
         instance.save()
         return instance
@@ -72,25 +89,71 @@ class UserShortSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    stats = serializers.SerializerMethodField()
-
     class Meta:
         model = User
-        fields = ('id', 'username', 'role', 'stats', 'fixed_salary', 'balance', 'date_joined', 'change_password', 'is_active')
-        read_only_fields = ('id', 'username', 'role', 'fixed_salary', 'date_joined', 'change_password', 'is_active')
+        fields = ('id', 'username', 'role', 'fixed_salary', 'balance', 'date_joined', 'change_password',
+                  'is_active')
 
-    def get_stats(self, obj):
-        allowed_roles = [Role.MANAGER, Role.EMPLOYEE]
 
-        if obj.role not in allowed_roles:
-            return None
+class UserStatsSerializer(serializers.Serializer):
+    one_month = serializers.SerializerMethodField()
+    three_months = serializers.SerializerMethodField()
 
-        all_projects = (
-                obj.manager_projects.all() |
-                obj.employee_projects.all()
-        ).distinct()
+    def get_one_month(self, obj):
+        return self._get_stats(obj, days=30)
 
-        p_stats = all_projects.aggregate(
+    def get_three_months(self, obj):
+        return self._get_stats(obj, days=90)
+
+    def _get_stats(self, obj, days):
+        now = timezone.now()
+        start_date = now - timedelta(days=days)
+
+        active_task_statuses = [
+            TaskStatus.TODO,
+            TaskStatus.IN_PROGRESS,
+            TaskStatus.REJECTED,
+            TaskStatus.OVERDUE
+        ]
+
+        task_filter = Q(updated_at__gte=start_date) | Q(status__in=active_task_statuses)
+        filtered_tasks = obj.tasks.filter(task_filter)
+
+        t_stats = filtered_tasks.aggregate(
+            total=Count('id'),
+            todo=Count('id', filter=Q(status=TaskStatus.TODO)),
+            in_progress=Count('id', filter=Q(status=TaskStatus.IN_PROGRESS)),
+            rejected=Count('id', filter=Q(status=TaskStatus.REJECTED)),
+            overdue=Count('id', filter=Q(status=TaskStatus.OVERDUE)),
+            done=Count('id', filter=Q(status=TaskStatus.DONE)),
+            checked=Count('id', filter=Q(status=TaskStatus.CHECKED)),
+            production=Count('id', filter=Q(status=TaskStatus.PRODUCTION))
+        )
+
+        t_total = t_stats['total'] or 0
+        t_completed = (t_stats['done'] or 0) + (t_stats['checked'] or 0) + (t_stats['production'] or 0)
+        t_rate = round((t_completed / t_total * 100), 1) if t_total > 0 else 100.0
+
+        tasks_data = {
+            "total": t_total,
+            "todo": t_stats['todo'] or 0,
+            "in_progress": t_stats['in_progress'] or 0,
+            "rejected": t_stats['rejected'] or 0,
+            "overdue": t_stats['overdue'] or 0,
+            "done": t_stats['done'] or 0,
+            "checked": t_stats['checked'] or 0,
+            "production": t_stats['production'] or 0,
+            "overall_completed": t_completed,
+            "completion_rate": t_rate
+        }
+
+        all_projects = (obj.manager_projects.all() | obj.employee_projects.all()).distinct()
+
+        active_project_statuses = [ProjectStatus.PLANNING, ProjectStatus.ACTIVE]
+        project_filter = Q(updated_at__gte=start_date) | Q(status__in=active_project_statuses)
+        filtered_projects = all_projects.filter(project_filter)
+
+        p_stats = filtered_projects.aggregate(
             total=Count('id'),
             planning=Count('id', filter=Q(status=ProjectStatus.PLANNING)),
             active=Count('id', filter=Q(status=ProjectStatus.ACTIVE)),
@@ -98,39 +161,60 @@ class ProfileSerializer(serializers.ModelSerializer):
             cancelled=Count('id', filter=Q(status=ProjectStatus.CANCELLED)),
         )
 
-        t_stats = obj.tasks.aggregate(
+        p_total = p_stats['total'] or 0
+        p_completed = p_stats['completed'] or 0
+        p_rate = round((p_completed / p_total * 100), 1) if p_total > 0 else 100.0
+
+        projects_data = {
+            "total": p_total,
+            "planning": p_stats['planning'] or 0,
+            "active": p_stats['active'] or 0,
+            "completed": p_completed,
+            "cancelled": p_stats['cancelled'] or 0,
+            "current_work": (p_stats['planning'] or 0) + (p_stats['active'] or 0),
+            "completion_rate": p_rate
+        }
+
+        filtered_meetings = obj.attendances.filter(created_at__gte=start_date)
+
+        m_stats = filtered_meetings.aggregate(
             total=Count('id'),
-            todo=Count('id', filter=Q(status=Status.TODO)),
-            in_progress=Count('id', filter=Q(status=Status.IN_PROGRESS)),
-            done=Count('id', filter=Q(status=Status.DONE)),
-            checked=Count('id', filter=Q(status=Status.CHECKED)),
-            production=Count('id', filter=Q(status=Status.PRODUCTION))
+            attended=Count('id', filter=Q(is_attended=True)),
+            missed=Count('id', filter=Q(is_attended=False)),
+            with_reason=Count('id', filter=Q(is_attended=False) & ~Q(absence_reason__exact='') & Q(
+                absence_reason__isnull=False)),
         )
 
+        m_total = m_stats['total'] or 0
+        m_attended = m_stats['attended'] or 0
+        m_missed = m_stats['missed'] or 0
+        m_with_reason = m_stats['with_reason'] or 0
+
+        meetings_data = {
+            "total": m_total,
+            "attended": m_attended,
+            "missed": m_missed,
+            "with_reason": m_with_reason,
+            "unexcused": m_missed - m_with_reason,
+            "attendance_rate": round((m_attended / m_total * 100), 1) if m_total > 0 else 100.0
+        }
+
         return {
-            "projects": {
-                "total": p_stats['total'],
-                "planning": p_stats['planning'],
-                "active": p_stats['active'],
-                "completed": p_stats['completed'],
-                "cancelled": p_stats['cancelled'],
-                "current_work": p_stats['planning'] + p_stats['active']
-            },
-            "tasks": {
-                "total": t_stats['total'],
-                "todo": t_stats['todo'],
-                "in_progress": t_stats['in_progress'],
-                "done": t_stats['done'],
-                "checked": t_stats['checked'],
-                "production": t_stats['production'],
-                "overall_completed": t_stats['done'] + t_stats['checked'] + t_stats['production']
-            }
+            "projects": projects_data,
+            "tasks": tasks_data,
+            "meetings": meetings_data
         }
 
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(
+        write_only=True,
+        min_length=4,
+        error_messages={
+            'min_length': "Parol kamida 4 ta raqamdan iborat bo'lishi kerak."
+        })
+
     confirm_new_password = serializers.CharField(write_only=True)
 
     def validate_old_password(self, value):
@@ -164,7 +248,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def save(self, **kwargs):
         user = self.context['request'].user
         user.set_password(self.validated_data['new_password'])
-        user.must_change_password = False
+        user.change_password = False
         user.save()
         return user
 

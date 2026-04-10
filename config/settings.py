@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 from datetime import timedelta
 from pathlib import Path
 
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_celery_beat',
     'drf_spectacular',
     'django_filters',
     'corsheaders',
@@ -97,6 +99,31 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+# Redis
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+
+# Celery
+CELERY_TIMEZONE = "Asia/Tashkent"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+
+# Celery beat
+CELERY_BEAT_SCHEDULE = {
+    'check-deadlines-every-10-min': {
+        'task': 'apps.projects.tasks.update_overdue_status_and_notify',
+        'schedule': crontab(minute='*/10'),
+    },
+
+    'morning-task-reminders': {
+        'task': 'apps.projects.tasks.send_morning_reminders',
+        'schedule': crontab(hour=9, minute=0),
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

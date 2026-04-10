@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from apps.users.serializers import UserShortSerializer
 from apps.users.models import Role
-from .models import Project, Task, TaskAttachment, Status, Meeting, MeetingAttendance
+from .models import Project, Task, TaskAttachment, TaskStatus, Meeting, MeetingAttendance
 
 User = get_user_model()
 
@@ -48,10 +48,10 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = (
             'id', 'project', 'project_info', 'title', 'description', 'status', 'priority', 'type',
-            'assignee', 'assignee_info', 'deadline', 'task_price', 'estimated_hours', 'actual_hours',
-            'reopened_count', 'attachments', 'created_at', 'updated_at', 'is_active'
+            'assignee', 'assignee_info', 'deadline', 'task_price', 'penalty_percentage', 'estimated_hours', 'actual_hours',
+            'reopened_count', 'rejection_reason', 'attachments', 'created_at', 'updated_at', 'is_active'
         )
-        read_only_fields = ('id', 'created_at', 'updated_at', 'reopened_count')
+        read_only_fields = ('id', 'created_at', 'updated_at', 'reopened_count', 'rejection_reason')
 
     def validate_task_price(self, value):
         user = self.context['request'].user
@@ -89,16 +89,45 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskStatusUpdateSerializer(serializers.ModelSerializer):
+    rejection_reason = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = Task
-        fields = ('status',)
+        fields = ('status', 'rejection_reason')
 
-    def validate_status(self, value):
-        task = self.instance
-        if value == Status.TODO and task.status in [Status.DONE, Status.CHECKED]:
-            task.reopened_count += 1
-            task.save(update_fields=['reopened_count'])
-        return value
+    def validate(self, attrs):
+        status = attrs.get('status')
+        reason = attrs.get('rejection_reason')
+
+        if status == TaskStatus.REJECTED:
+            if not reason or not reason.strip():
+                raise serializers.ValidationError({
+                    "rejection_reason": "Vazifani rad etish uchun sabab ko'rsatish shart!"
+                })
+        else:
+            attrs['rejection_reason'] = None
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        new_status = validated_data.get('status')
+        reason = validated_data.get('rejection_reason')
+
+        if new_status in [TaskStatus.REJECTED, TaskStatus.TODO]:
+            if instance.status in [TaskStatus.DONE, TaskStatus.PRODUCTION, TaskStatus.CHECKED]:
+                instance.reopened_count += 1
+
+        if new_status == TaskStatus.REJECTED:
+            instance.status = TaskStatus.IN_PROGRESS
+            instance.rejection_reason = reason
+        else:
+            instance.status = new_status
+
+            if new_status in [TaskStatus.DONE, TaskStatus.CHECKED, TaskStatus.PRODUCTION]:
+                instance.rejection_reason = None
+
+        instance.save()
+        return instance
 
 
 class MeetingSerializer(serializers.ModelSerializer):

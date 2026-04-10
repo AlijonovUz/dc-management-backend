@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from apps.users.models import Role
 from apps.users.permissions import IsAdmin, IsManager, IsEmployee
-from .models import Project, Task, TaskAttachment, Status, Meeting, MeetingAttendance
+from .models import Project, Task, TaskAttachment, TaskStatus, Meeting, MeetingAttendance
 from .serializers import ProjectSerializer, TaskSerializer, TaskAttachmentSerializer, TaskStatusUpdateSerializer, \
     MeetingSerializer, MeetingAttendanceSerializer
 
@@ -94,33 +94,46 @@ class TaskViewSet(viewsets.ModelViewSet):
         user = self.request.user
         task = self.get_object()
         new_status = serializer.validated_data.get('status')
+        current_status = task.status
 
-        is_manager = task.project.manager == user or user.role in [Role.SUPERADMIN, Role.ADMIN]
-        is_tester = task.project.testers.filter(id=user.id).exists()
-        is_assignee = task.assignee == user
-
-        if is_manager:
+        if user.role in [Role.SUPERADMIN, Role.ADMIN] or task.project.manager == user:
             serializer.save()
             return
 
-        if is_assignee:
-            allowed_for_employee = [Status.TODO, Status.IN_PROGRESS, Status.DONE]
-            if new_status not in allowed_for_employee:
+        if task.assignee == user:
+            if new_status == TaskStatus.OVERDUE:
+                raise PermissionDenied("Vazifa holatini qo'lda 'Muddati o'tgan' qilib bo'lmaydi.")
+
+            employee_transitions = {
+                TaskStatus.TODO: [TaskStatus.IN_PROGRESS],
+                TaskStatus.IN_PROGRESS: [TaskStatus.TODO, TaskStatus.DONE],
+                TaskStatus.DONE: [TaskStatus.TODO, TaskStatus.PRODUCTION],
+                TaskStatus.REJECTED: [TaskStatus.IN_PROGRESS],
+            }
+
+            allowed_next = employee_transitions.get(current_status, [])
+
+            if new_status not in allowed_next:
                 raise PermissionDenied(
-                    "Vazifani faqat \"Bajarildi\" holatiga o'tkazishingiz mumkin."
-                    "Tekshirish menejer yoki sinovchi tomonidan amalga oshirilishi kerak."
+                    f"Zanjir xatosi: Siz vazifani '{current_status}' holatidan to'g'ridan-to'g'ri '{new_status}' holatiga o'tkaza olmaysiz. "
+                    f"Ruxsat etilgan o'tishlar: {', '.join(allowed_next)}"
                 )
+
             serializer.save()
             return
 
+        is_tester = task.project.testers.filter(id=user.id).exists()
         if is_tester:
-            if is_assignee:
-                raise PermissionDenied("Siz o'zingizga tayinlangan vazifa uchun sinovchi sifatida harakat qila olmaysiz.")
+            if current_status != TaskStatus.PRODUCTION:
+                raise PermissionDenied("Faqat 'Production' holatidagi vazifalarni tekshirishingiz mumkin.")
+
+            if new_status not in [TaskStatus.CHECKED, TaskStatus.REJECTED]:
+                raise PermissionDenied("Tester faqat 'Checked' yoki 'Rejected' qila oladi.")
 
             serializer.save()
             return
 
-        raise PermissionDenied("Sizda bu vazifaning holatini yangilash uchun ruxsat yo'q.")
+        raise PermissionDenied("Sizda ushbu vazifa holatini o'zgartirish huquqi yo'q.")
 
 
 @extend_schema(tags=['Task Attachments'])
@@ -148,11 +161,19 @@ class TaskAttachmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         task = serializer.validated_data.get('task')
-        if task.status == Status.PRODUCTION:
-            raise ValidationError("Ishlab chiqarishdagi vazifaga fayl qo'sha olmaysiz.")
+
+        locked_statuses = [
+            TaskStatus.DONE,
+            TaskStatus.CHECKED,
+            TaskStatus.PRODUCTION
+        ]
+
+        if task.status in locked_statuses:
+            raise ValidationError(
+                f"Vazifa '{task.get_status_display()}' holatida bo'lgani uchun unga fayl biriktira olmaysiz."
+            )
 
         serializer.save()
-
 
 @extend_schema(tags=['Meetings'])
 class MeetingViewSet(viewsets.ModelViewSet):

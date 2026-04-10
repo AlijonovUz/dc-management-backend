@@ -7,7 +7,7 @@ class Role(models.TextChoices):
     ADMIN = 'admin', 'Administrator'
     MANAGER = 'manager', 'Menejer'
     EMPLOYEE = 'employee', 'Xodim'
-    AUDITOR = 'auditor', 'Auditor'
+    AUDITOR = 'auditor', 'Nazoratchi'
     ACCOUNTANT = 'accountant', 'Hisobchi'
 
 
