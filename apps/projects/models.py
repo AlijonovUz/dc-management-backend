@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.common.models import BaseModel
@@ -11,16 +12,19 @@ User = get_user_model()
 class ProjectStatus(models.TextChoices):
     PLANNING = 'planning', 'Rejalashtirilmoqda'
     ACTIVE = 'active', 'Faol'
+    OVERDUE = 'overdue', 'Muddati o\'tgan'
     COMPLETED = 'completed', 'Yakunlangan'
     CANCELLED = 'cancelled', 'Bekor qilingan'
 
 
-class Status(models.TextChoices):
+class TaskStatus(models.TextChoices):
     TODO = 'todo', 'Kutilmoqda'
     IN_PROGRESS = 'in_progress', 'Jarayonda'
+    OVERDUE = 'overdue', 'Muddati o\'tgan'
     DONE = 'done', 'Bajarildi'
-    CHECKED = 'checked', 'Tekshirildi'
     PRODUCTION = 'production', 'Ishga tushirildi'
+    CHECKED = 'checked', 'Tekshirildi'
+    REJECTED = 'rejected', 'Rad etildi'
 
 
 class Priority(models.TextChoices):
@@ -79,7 +83,9 @@ class Task(BaseModel):
     title = models.CharField(max_length=255, verbose_name='Nomi')
     description = models.TextField(verbose_name='Tavsifi')
 
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.TODO, db_index=True,
+    rejection_reason = models.TextField(null=True, blank=True, verbose_name="Rad etish sababi")
+
+    status = models.CharField(max_length=20, choices=TaskStatus.choices, default=TaskStatus.TODO, db_index=True,
                               verbose_name='Holati')
     priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.MEDIUM, db_index=True,
                                 verbose_name='Darajasi')
@@ -91,6 +97,10 @@ class Task(BaseModel):
 
     deadline = models.DateTimeField(db_index=True, verbose_name='Muddati')
     task_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name='Vazifa narxi')
+    penalty_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00,
+                                             validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                             verbose_name='Jarima foizi (%)')
+
     estimated_hours = models.FloatField(default=0.0, verbose_name='Taxminiy soatlar')
     actual_hours = models.FloatField(default=0.0, verbose_name="Haqiqiy ish vaqti")
     reopened_count = models.PositiveIntegerField(default=0, verbose_name='Qaytishlar soni')
@@ -168,4 +178,6 @@ class MeetingAttendance(BaseModel):
         unique_together = ('user', 'meeting')
 
     def __str__(self):
-        return self.meeting.title
+        meeting_title = self.meeting.title if self.meeting else "Noma'lum yig'ilish"
+        user_name = self.user.username if self.user else "Noma'lum foydalanuvchi"
+        return f"{user_name} - {meeting_title}"

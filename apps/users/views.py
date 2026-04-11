@@ -1,13 +1,12 @@
 from drf_spectacular.utils import extend_schema
 from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import make_password
 from rest_framework import viewsets, permissions, generics, filters, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .permissions import IsAdmin
+from .permissions import IsAdmin, IsEmployee, IsManager
 from .serializers import (UserSerializer, ProfileSerializer, ChangePasswordSerializer,
-                          MyTokenRefreshSerializer, MyTokenObtainPairSerializer)
+                          MyTokenRefreshSerializer, MyTokenObtainPairSerializer, UserStatsSerializer)
 
 User = get_user_model()
 
@@ -22,9 +21,18 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(tags=['Profile'])
-class ProfileView(generics.RetrieveUpdateAPIView):
+class ProfileView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+@extend_schema(tags=['Profile'])
+class UserStatsView(generics.RetrieveAPIView):
+    serializer_class = UserStatsSerializer
+    permission_classes = [IsEmployee | IsManager]
 
     def get_object(self):
         return self.request.user
@@ -38,6 +46,20 @@ class ChangePasswordView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def put(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "Parol muvaffaqiyatli o'zgartirildi."
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["Authorization"])

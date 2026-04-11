@@ -1,8 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.utils.html import format_html
 from .models import User, Role
 
 from unfold.admin import ModelAdmin
+
+admin.site.unregister(Group)
 
 @admin.register(User)
 class CustomUserAdmin(ModelAdmin):
@@ -20,7 +23,7 @@ class CustomUserAdmin(ModelAdmin):
             'fields': ('role', 'fixed_salary', 'balance')
         }),
         ('Huquqlar va Status', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups'),
+            'fields': ('is_active', 'is_staff', 'is_superuser'),
             'classes': ('collapse',)
         }),
     )
