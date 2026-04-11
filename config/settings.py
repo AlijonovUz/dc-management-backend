@@ -34,7 +34,6 @@ ALLOWED_HOSTS = ['*']
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -47,6 +46,7 @@ INSTALLED_APPS = [
     'unfold.contrib.simple_history',
     'unfold.contrib.location_field',
     'unfold.contrib.constance',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,18 +54,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'apps.common.apps.CommonConfig',
-    'apps.users.apps.UsersConfig',
-    'apps.finance.apps.FinanceConfig',
-    'apps.projects.apps.ProjectsConfig',
-    'apps.audit.apps.AuditConfig',
-
     'rest_framework',
     'rest_framework_simplejwt',
     'django_celery_beat',
     'drf_spectacular',
     'django_filters',
     'corsheaders',
+
+    'apps.common.apps.CommonConfig',
+    'apps.users.apps.UsersConfig',
+    'apps.finance.apps.FinanceConfig',
+    'apps.projects.apps.ProjectsConfig',
+    'apps.applications.apps.ApplicationsConfig',
+    'apps.audit.apps.AuditConfig',
 ]
 
 MIDDLEWARE = [
@@ -179,22 +180,22 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
 # Django Rest Framework
 # https://www.django-rest-framework.org/
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    'EXCEPTION_HANDLER': 'apps.common.exceptions.exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 
-    # 'DEFAULT_RENDERER_CLASSES': [
-    #     'rest_framework.renderers.JSONRenderer',
-    # ],
-    # 'DEFAULT_PARSER_CLASSES': [
-    #     'rest_framework.parsers.JSONParser',
-    # ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'apps.common.renderers.ResponseRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
 
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

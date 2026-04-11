@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'username', 'role',
+            'id', 'username', 'position', 'role',
             'password', 'confirm_password',
             'fixed_salary', 'balance'
         )
@@ -85,13 +85,13 @@ class UserSerializer(serializers.ModelSerializer):
 class UserShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'date_joined', 'role', 'is_active')
+        fields = ('id', 'username', 'date_joined', 'position', 'role', 'is_active')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'role', 'fixed_salary', 'balance', 'date_joined', 'change_password',
+        fields = ('id', 'username', 'position', 'role', 'fixed_salary', 'balance', 'date_joined', 'change_password',
                   'is_active')
 
 
@@ -123,7 +123,6 @@ class UserStatsSerializer(serializers.Serializer):
             total=Count('id'),
             todo=Count('id', filter=Q(status=TaskStatus.TODO)),
             in_progress=Count('id', filter=Q(status=TaskStatus.IN_PROGRESS)),
-            rejected=Count('id', filter=Q(status=TaskStatus.REJECTED)),
             overdue=Count('id', filter=Q(status=TaskStatus.OVERDUE)),
             done=Count('id', filter=Q(status=TaskStatus.DONE)),
             checked=Count('id', filter=Q(status=TaskStatus.CHECKED)),
@@ -138,7 +137,6 @@ class UserStatsSerializer(serializers.Serializer):
             "total": t_total,
             "todo": t_stats['todo'] or 0,
             "in_progress": t_stats['in_progress'] or 0,
-            "rejected": t_stats['rejected'] or 0,
             "overdue": t_stats['overdue'] or 0,
             "done": t_stats['done'] or 0,
             "checked": t_stats['checked'] or 0,

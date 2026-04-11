@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from celery import shared_task
 from django.utils import timezone
 from django.db.models import Q
@@ -65,14 +66,22 @@ def send_morning_reminders():
         status__in=[TaskStatus.DONE, TaskStatus.CHECKED, TaskStatus.PRODUCTION]
     ).only('id', 'title', 'assignee_id')
 
-    count = 0
+    user_tasks = defaultdict(list)
+
     for task in remind_tasks.iterator(chunk_size=1000):
+        user_tasks[task.assignee_id].append(task.title)
+
+    for user_id, tasks in user_tasks.items():
+        task_count = len(tasks)
+        if task_count == 1:
+            message = f"'{tasks[0]}' vazifasini bugun yakunlash shart yoki muddati o'tgan!"
+        else:
+            message = f"Bugun sizda {task_count} ta muhim vazifa bor. Kechiktirmasdan yakunlang!"
+
         send_push_notification_task.delay(
-            task.assignee_id,
+            user_id,
             "Bugungi kunlik eslatma",
-            f"'{task.title}' vazifasini bugun yakunlash shart yoki muddati o'tgan!"
+            message
         )
-        count += 1
 
-    return f"{count} ta xodimga ertalabki eslatmalar navbatga qo'yildi."
-
+    return f"{len(user_tasks)} ta xodimga ertalabki umumiy eslatmalar navbatga qo'yildi."

@@ -92,16 +92,16 @@ class PayrollAdmin(ModelAdmin):
     readonly_fields = ('total_amount', 'created_at', 'updated_at')
 
     fieldsets = (
-        ('Employee Info', {
+        ('Xodim haqida ma\'lumot', {
             'fields': ('user', 'month')
         }),
-        ('Salary Breakdown', {
+        ('Ish haqi taqsimoti', {
             'fields': ('fixed_salary', 'kpi_bonus', 'penalty_amount', 'total_amount')
         }),
-        ('Performance Metrics', {
+        ('Ishlash ko\'rsatkichlari', {
             'fields': ('tasks_completed', 'deadline_missed', 'bug_count')
         }),
-        ('System Info', {
+        ('Tizim haqida ma\'lumot', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',),
         }),

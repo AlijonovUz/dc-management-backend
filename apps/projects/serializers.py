@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -44,14 +45,25 @@ class TaskSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all(), write_only=True)
     project_info = serializers.SerializerMethodField(read_only=True)
 
+    estimated_input_hours = serializers.IntegerField(write_only=True, required=False, min_value=0)
+    estimated_input_minutes = serializers.IntegerField(write_only=True, required=False, min_value=0, max_value=59)
+
     class Meta:
         model = Task
         fields = (
             'id', 'project', 'project_info', 'title', 'description', 'status', 'priority', 'type',
-            'assignee', 'assignee_info', 'deadline', 'task_price', 'penalty_percentage', 'estimated_hours', 'actual_hours',
+            'assignee', 'assignee_info', 'deadline', 'task_price', 'penalty_percentage',
+
+            'estimated_minutes', 'actual_minutes',
+
+            'estimated_input_hours', 'estimated_input_minutes',
+
             'reopened_count', 'rejection_reason', 'attachments', 'created_at', 'updated_at', 'is_active'
         )
-        read_only_fields = ('id', 'created_at', 'updated_at', 'reopened_count', 'rejection_reason')
+        read_only_fields = (
+            'id', 'created_at', 'updated_at', 'reopened_count', 'rejection_reason',
+            'estimated_minutes', 'actual_minutes'
+        )
 
     def validate_task_price(self, value):
         user = self.context['request'].user
@@ -85,6 +97,14 @@ class TaskSerializer(serializers.ModelSerializer):
                     'assignee': "Bu xodim ushbu loyiha jamoasiga tayinlanmagan!"
                 })
 
+        hours = attrs.pop('estimated_input_hours', None)
+        minutes = attrs.pop('estimated_input_minutes', None)
+
+        if hours is not None or minutes is not None:
+            h = hours or 0
+            m = minutes or 0
+            attrs['estimated_minutes'] = (h * 60) + m
+
         return attrs
 
 
@@ -93,7 +113,10 @@ class TaskStatusUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('status', 'rejection_reason')
+        fields = (
+            'status',
+            'rejection_reason',
+        )
 
     def validate(self, attrs):
         status = attrs.get('status')
@@ -112,17 +135,25 @@ class TaskStatusUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         new_status = validated_data.get('status')
         reason = validated_data.get('rejection_reason')
+        now = timezone.now()
 
-        if new_status in [TaskStatus.REJECTED, TaskStatus.TODO]:
+        if new_status == TaskStatus.IN_PROGRESS and instance.status != TaskStatus.IN_PROGRESS:
+            instance.started_at = now
+
+        if new_status == TaskStatus.DONE and instance.started_at:
+            elapsed = int((now - instance.started_at).total_seconds() / 60)
+            instance.actual_minutes += elapsed
+            instance.started_at = None
+
+        if new_status == TaskStatus.REJECTED:
             if instance.status in [TaskStatus.DONE, TaskStatus.PRODUCTION, TaskStatus.CHECKED]:
                 instance.reopened_count += 1
 
-        if new_status == TaskStatus.REJECTED:
             instance.status = TaskStatus.IN_PROGRESS
             instance.rejection_reason = reason
+            instance.started_at = now
         else:
             instance.status = new_status
-
             if new_status in [TaskStatus.DONE, TaskStatus.CHECKED, TaskStatus.PRODUCTION]:
                 instance.rejection_reason = None
 
@@ -137,9 +168,9 @@ class MeetingSerializer(serializers.ModelSerializer):
         model = Meeting
         fields = (
             'id', 'project', 'organizer', 'title', 'description',
-            'link', 'start_time', 'duration_minutes', 'is_completed', 'participants_info',
+            'link', 'penalty_percentage', 'start_time', 'duration_minutes', 'is_completed', 'participants_info',
         )
-        read_only_fields = ('organizer', 'participants_info')
+        read_only_fields = ('organizer', 'participants_info', 'penalty_percentage')
 
 
 class MeetingAttendanceSerializer(serializers.ModelSerializer):

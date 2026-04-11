@@ -110,24 +110,28 @@ class ExpenseRequest(BaseModel):
                 })
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         self.full_clean()
 
-        if self.pk:
+        if not is_new:
             old_instance = ExpenseRequest.objects.get(pk=self.pk)
 
             if old_instance.status != Status.CONFIRMED and self.status == Status.CONFIRMED:
                 self.confirmed_at = timezone.now()
 
                 if self.type == ExpenseType.WITHDRAWAL:
+                    if self.user.balance < self.amount:
+                        raise ValidationError("Balansda yetarli mablag' qolmagan!")
+
                     self.user.balance -= self.amount
                     self.user.save(update_fields=['balance'])
 
                 Ledger.objects.create(
-                    expense=self,
                     user=self.user,
+                    expense=self,
                     amount=self.amount,
                     transaction_type=TransactionType.DEBIT,
-                    description=f"{self.get_type_display()} tasdiqlandi: {self.reason[:50]}"
+                    description=f"{self.get_type_display()} tasdiqlandi. Sabab: {self.reason[:100]}"
                 )
 
         super().save(*args, **kwargs)
