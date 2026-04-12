@@ -2,12 +2,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import parsers, viewsets
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
 
 from apps.applications.models import Region, Direction, Application
 from apps.applications.serializers import (RegionSerializer, DirectionSerializer,
-                                           ApplicationCreateSerializer, ApplicationStatusUpdateSerializer)
+                                           ApplicationSerializer, ApplicationStatusUpdateSerializer)
 from apps.users.permissions import IsAdmin, IsManager, IsSuperAdmin
 from apps.users.models import Role
 
@@ -40,8 +40,8 @@ class DirectionViewSet(ActiveObjectsMixin, viewsets.ModelViewSet):
 
 
 @extend_schema(tags=['Application'])
-class ApplicationCreateView(ListCreateAPIView):
-    serializer_class = ApplicationCreateSerializer
+class ApplicationView(ListCreateAPIView):
+    serializer_class = ApplicationSerializer
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
     permission_classes = (AllowAny,)
     filter_backends = [DjangoFilterBackend, SearchFilter]
@@ -60,8 +60,14 @@ class ApplicationCreateView(ListCreateAPIView):
 
 
 @extend_schema(tags=['Application'])
-class ApplicationStatusUpdateView(UpdateAPIView):
-    queryset = Application.objects.all()
-    serializer_class = ApplicationStatusUpdateSerializer
+class ApplicationDetailView(RetrieveUpdateAPIView):
+    queryset = Application.objects.select_related(
+        'region', 'direction', 'reviewed_by'
+    ).all()
     permission_classes = (IsAdmin | IsManager,)
-    http_method_names = ('patch',)
+    http_method_names = ('get', 'patch',)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ApplicationSerializer
+        return ApplicationStatusUpdateSerializer

@@ -18,13 +18,13 @@ class DirectionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'title')
 
 
-class ApplicationCreateSerializer(serializers.ModelSerializer):
+class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ('id', 'full_name', 'birth_date', 'is_student', 'university', 'region',
-                  'phone', 'telegram', 'direction', 'resume', 'extra_info', 'portfolio', 'is_active'
+                  'phone', 'telegram', 'direction', 'resume', 'extra_info', 'portfolio', 'status', 'is_active'
                   )
-        read_only_fields = ('id', 'is_active')
+        read_only_fields = ('id', 'status', 'is_active')
 
     def validate(self, attrs):
         if attrs.get('is_student') and not attrs.get('university'):
