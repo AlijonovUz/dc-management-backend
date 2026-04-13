@@ -33,6 +33,9 @@ class ProjectAdmin(ModelAdmin):
         ('Loyiha haqida ma\'lumot', {
             'fields': ('title', 'description', 'status', 'is_active')
         }),
+        ('Narxlar', {
+            'fields': ('project_price', 'penalty_percentage')
+        }),
         ('Jamoa', {
             'fields': ('manager', 'employees', 'testers')
         }),
@@ -55,8 +58,8 @@ class ProjectAdmin(ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(ModelAdmin):
-    list_display = ('id', 'title', 'project', 'assignee', 'type_badge', 'priority', 'status', 'deadline')
-    list_display_links = ('id', 'title')
+    list_display = ('uid', 'title', 'project', 'assignee', 'type_badge', 'priority', 'status', 'deadline')
+    list_display_links = ('uid', 'title')
     list_filter = ('status', 'priority', 'type', 'project', 'assignee', 'deadline')
     search_fields = ('title', 'description', 'project__title', 'assignee__username')
 
@@ -73,7 +76,7 @@ class TaskAdmin(ModelAdmin):
             'fields': ('assignee', 'task_price', 'penalty_percentage')
         }),
         ('Vaqtni kuzatish & Sifat', {
-            'fields': ('deadline', 'estimated_hours', 'actual_hours', 'reopened_count')
+            'fields': ('deadline', 'estimated_minutes', 'actual_minutes', 'reopened_count')
         }),
     )
 
@@ -91,7 +94,7 @@ class TaskAttachmentAdmin(ModelAdmin):
 
 @admin.register(Meeting)
 class MeetingAdmin(ModelAdmin):
-    list_display = ('id', 'title', 'project', 'organizer', 'start_time', 'is_completed')
+    list_display = ('uid', 'title', 'project', 'organizer', 'start_time', 'is_completed')
     list_filter = ('is_completed', 'start_time', 'project', 'organizer')
     search_fields = ('title', 'description', 'project__title', 'organizer__username')
 

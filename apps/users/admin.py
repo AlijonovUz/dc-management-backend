@@ -1,11 +1,34 @@
 from django.contrib import admin
+from django.contrib.admin.sites import NotRegistered
 from django.contrib.auth.models import Group
 from django.utils.html import format_html
 from .models import User, Role
 
 from unfold.admin import ModelAdmin
 
-admin.site.unregister(Group)
+from django_celery_beat.models import (
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule
+)
+
+models_to_hide = [
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
+    Group
+]
+
+for model in models_to_hide:
+    try:
+        admin.site.unregister(model)
+    except NotRegistered:
+        pass
+
 
 @admin.register(User)
 class CustomUserAdmin(ModelAdmin):
@@ -20,7 +43,7 @@ class CustomUserAdmin(ModelAdmin):
             'fields': ('username', 'password')
         }),
         ('Lavozim va Moliya', {
-            'fields': ('role', 'fixed_salary', 'balance')
+            'fields': ('position', 'role', 'fixed_salary', 'balance')
         }),
         ('Huquqlar va Status', {
             'fields': ('is_active', 'is_staff', 'is_superuser'),
@@ -31,7 +54,7 @@ class CustomUserAdmin(ModelAdmin):
     add_fieldsets = (
         ('Yangi xodim', {
             'classes': ('wide',),
-            'fields': ('username', 'password', 'role', 'fixed_salary'),
+            'fields': ('username', 'password', 'position', 'role', 'fixed_salary'),
         }),
     )
 
@@ -46,7 +69,7 @@ class CustomUserAdmin(ModelAdmin):
                 obj.must_change_password = True
         super().save_model(request, obj, form, change)
 
-    @admin.display(description='Lavozim', ordering='role')
+    @admin.display(description='Roli', ordering='role')
     def role_colored(self, obj):
         colors = {
             Role.SUPERADMIN: 'red',

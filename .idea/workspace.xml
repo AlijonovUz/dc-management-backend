@@ -2,26 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="603e22b4-df9f-4934-ad43-2dd56d4495f2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/apps/projects/tasks.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/commands.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/celery.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/audit/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/audit/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/common/admin.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/common/tests.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/common/views.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/projects/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/projects/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/projects/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/projects/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/projects/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/projects/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/projects/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/projects/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/users/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/users/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/users/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/users/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/users/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/users/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/users/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/users/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/applications/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/applications/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/applications/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/applications/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/applications/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/applications/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,10 +59,11 @@
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Programming/group/fn36/student&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Programming/group/fn43&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.completion.inline&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -149,7 +134,14 @@
       <workItem from="1775801297578" duration="2527000" />
       <workItem from="1775812078313" duration="5950000" />
       <workItem from="1775834304688" duration="143000" />
-      <workItem from="1775840202440" duration="3644000" />
+      <workItem from="1775840202440" duration="4209000" />
+      <workItem from="1775879761984" duration="5097000" />
+      <workItem from="1775894042502" duration="2805000" />
+      <workItem from="1775898286353" duration="138000" />
+      <workItem from="1775899598774" duration="6658000" />
+      <workItem from="1775921849850" duration="9403000" />
+      <workItem from="1775954027299" duration="1306000" />
+      <workItem from="1775957149522" duration="374000" />
     </task>
     <servers />
   </component>

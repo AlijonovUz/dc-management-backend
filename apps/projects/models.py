@@ -5,6 +5,7 @@ from django.db import models
 
 from apps.common.models import BaseModel
 from apps.users.models import Role
+from .utils import generate_unique_id
 
 User = get_user_model()
 
@@ -54,6 +55,16 @@ class Project(BaseModel):
         verbose_name="Holati"
     )
 
+    project_price = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0.00,
+        verbose_name="Menejer bonusi (Loyiha uchun)"
+    )
+    penalty_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Kechikkanlik uchun jarima foizi (%)"
+    )
+
     manager = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -79,6 +90,7 @@ class Project(BaseModel):
 
 
 class Task(BaseModel):
+    uid = models.CharField(max_length=7, unique=True, editable=False, verbose_name="UID")
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name='tasks', verbose_name='Loyiha')
     title = models.CharField(max_length=255, verbose_name='Nomi')
     description = models.TextField(verbose_name='Tavsifi')
@@ -96,13 +108,14 @@ class Task(BaseModel):
                                  limit_choices_to={'role': Role.EMPLOYEE}, db_index=True, verbose_name='Topshiruvchi')
 
     deadline = models.DateTimeField(db_index=True, verbose_name='Muddati')
+    started_at = models.DateTimeField(null=True, blank=True)
     task_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name='Vazifa narxi')
     penalty_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00,
                                              validators=[MinValueValidator(0), MaxValueValidator(100)],
                                              verbose_name='Jarima foizi (%)')
 
-    estimated_hours = models.FloatField(default=0.0, verbose_name='Taxminiy soatlar')
-    actual_hours = models.FloatField(default=0.0, verbose_name="Haqiqiy ish vaqti")
+    estimated_minutes = models.PositiveIntegerField(default=0, verbose_name='Taxminiy vaqt (daqiqa)')
+    actual_minutes = models.PositiveIntegerField(default=0, verbose_name="Haqiqiy ish vaqti (daqiqa)")
     reopened_count = models.PositiveIntegerField(default=0, verbose_name='Qaytishlar soni')
 
     class Meta:
@@ -119,6 +132,8 @@ class Task(BaseModel):
                 })
 
     def save(self, *args, **kwargs):
+        if not self.uid:
+            self.uid = generate_unique_id('T', Task)
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -139,6 +154,7 @@ class TaskAttachment(BaseModel):
 
 
 class Meeting(BaseModel):
+    uid = models.CharField(max_length=7, unique=True, editable=False, verbose_name="UID")
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, related_name='meetings',
                                 verbose_name='Loyiha')
     organizer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='organized_meetings',
@@ -147,6 +163,9 @@ class Meeting(BaseModel):
     title = models.CharField(max_length=255, verbose_name='Nomi')
     description = models.TextField(verbose_name='Tavfsifi')
     link = models.URLField(verbose_name='Havolasi')
+    penalty_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00,
+                                             validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                             verbose_name='Jarima foizi (%)')
 
     start_time = models.DateTimeField(verbose_name='Boshlanish vaqti')
     duration_minutes = models.PositiveIntegerField(verbose_name='Davomiyligi')
@@ -158,6 +177,11 @@ class Meeting(BaseModel):
     class Meta:
         verbose_name = 'Yig\'ilish '
         verbose_name_plural = 'Yig\'lishlar'
+
+    def save(self, *args, **kwargs):
+        if not self.uid:
+            self.uid = generate_unique_id('M', Meeting)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
