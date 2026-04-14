@@ -34,9 +34,9 @@ Mobil qurilmalarga Push bildirishnomalar yuborish uchun FCM tokenni ro'yxatdan o
 **Body:**
 ```json
 {
+  "fcm_token": "fcm_token_string",
   "device_id": "unique_id",
-  "registration_id": "fcm_token_string",
-  "type": "android" // yoki "ios"
+  "device_type": "android" // yoki "ios"
 }
 ```
 

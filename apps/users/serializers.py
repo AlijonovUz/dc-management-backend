@@ -86,15 +86,14 @@ class UserSerializer(serializers.ModelSerializer):
 class UserShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'phone_number', 'region', 'direction', 'role', 'date_joined', 'is_active')
+        fields = ('id', 'avatar', 'username', 'phone_number', 'region', 'direction', 'role', 'date_joined', 'is_active')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'phone_number', 'region', 'direction', 'role', 'fixed_salary', 'balance',
-                  'date_joined', 'change_password',
-                  'is_active')
+        fields = ('id', 'avatar', 'username', 'phone_number', 'passport_series', 'region', 'direction', 'role',
+                  'fixed_salary', 'balance', 'date_joined', 'change_password', 'is_active')
 
 
 class UserStatsSerializer(serializers.Serializer):
