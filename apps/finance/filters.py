@@ -11,6 +11,7 @@ class ExpenseRequestFilter(filters.FilterSet):
             'user__direction': ['exact'],
             'status': ['exact'],
             'type': ['exact'],
+            'project': ['exact'],
             'expense_category': ['exact'],
             'amount': ['exact', 'gte', 'lte'],
             'created_at': ['date', 'date__gte', 'date__lte'],
