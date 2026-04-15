@@ -85,6 +85,15 @@ class Project(BaseModel):
 
     def clean(self):
         super().clean()
+
+        if self.pk:
+            old_project = Project.objects.get(pk=self.pk)
+            if old_project.status == ProjectStatus.ACTIVE:
+                if old_project.manager_id != self.manager_id:
+                    raise ValidationError({
+                        'manager': "Loyiha 'Faol' holatida bo'lgani uchun menejerni o'zgartirib bo'lmaydi!"
+                    })
+
         if self.pk and self.employees.filter(id=self.manager_id).exists():
             raise ValidationError({'employees': "Loyiha menejeri xodim sifatida qo'shila olmaydi!"})
 
@@ -134,10 +143,27 @@ class Task(BaseModel):
     def clean(self):
         super().clean()
 
+        if self.pk:
+            old_task = Task.objects.get(pk=self.pk)
+            locked_statuses = [
+                TaskStatus.IN_PROGRESS,
+                TaskStatus.DONE,
+                TaskStatus.PRODUCTION,
+                TaskStatus.CHECKED,
+                TaskStatus.REJECTED,
+                TaskStatus.OVERDUE
+            ]
+
+            if old_task.status in locked_statuses:
+                if old_task.assignee_id != self.assignee_id:
+                    raise ValidationError({
+                        'assignee': f"Vazifa '{old_task.get_status_display()}' holatida bo'lgani uchun ijrochini o'zgartirib bo'lmaydi!"
+                    })
+
         if self.assignee and self.project:
             if not self.project.employees.filter(id=self.assignee.id).exists():
                 raise ValidationError({
-                    'assignee': "Bu xodim hozirgi jamoasiga qo'shilmagan!"
+                    'assignee': "Bu xodim loyiha jamoasiga qo'shilmagan!"
                 })
 
     def save(self, *args, **kwargs):
