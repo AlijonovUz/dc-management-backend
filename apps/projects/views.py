@@ -54,8 +54,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     filterset_fields = ['status']
     search_fields = ['title', 'description']
-    ordering_fields = ['status', 'deadline', 'start_date']
-    ordering = ['-start_date']
+    ordering_fields = ['status', 'deadline', 'created_at']
+    ordering = ['-created_at']
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:

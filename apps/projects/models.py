@@ -45,7 +45,6 @@ class Type(models.TextChoices):
 class Project(BaseModel):
     title = models.CharField(max_length=255, verbose_name="Nomi")
     description = models.TextField(verbose_name="Tavsifi")
-    start_date = models.DateTimeField(auto_now_add=True, verbose_name="Boshlanish sanasi")
     deadline = models.DateTimeField(verbose_name="Muddati")
     status = models.CharField(
         max_length=20,
@@ -77,7 +76,9 @@ class Project(BaseModel):
     employees = models.ManyToManyField(User, related_name='employee_projects',
                                        limit_choices_to={'roles__contains': [Role.EMPLOYEE]},
                                        verbose_name="Xodimlar")
-    testers = models.ManyToManyField(User, related_name='tester_projects', verbose_name="Sinovchilar")
+    testers = models.ManyToManyField(User, related_name='tester_projects',
+                                     limit_choices_to={'roles__overlap': [Role.MANAGER, Role.EMPLOYEE]},
+                                     verbose_name="Sinovchilar")
 
     class Meta:
         verbose_name = "Loyiha "
@@ -91,11 +92,8 @@ class Project(BaseModel):
             if old_project.status == ProjectStatus.ACTIVE:
                 if old_project.manager_id != self.manager_id:
                     raise ValidationError({
-                        'manager': "Loyiha 'Faol' holatida bo'lgani uchun menejerni o'zgartirib bo'lmaydi!"
+                        'manager': "Loyiha 'Faol' holatida menejerni o'zgartirib bo'lmaydi!"
                     })
-
-        if self.pk and self.employees.filter(id=self.manager_id).exists():
-            raise ValidationError({'employees': "Loyiha menejeri xodim sifatida qo'shila olmaydi!"})
 
     def save(self, *args, **kwargs):
         self.full_clean()

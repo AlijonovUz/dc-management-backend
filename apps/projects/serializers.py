@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from apps.users.serializers import UserShortSerializer
 from apps.users.models import Role
+
 from .models import Project, Task, TaskAttachment, TaskStatus, Meeting, MeetingAttendance
 
 User = get_user_model()
@@ -13,7 +14,7 @@ class ProjectShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
-            'id', 'title', 'description', 'status', 'is_active'
+            'id', 'title', 'description', 'status', 'created_at'
         )
 
 
@@ -98,9 +99,9 @@ class TaskSerializer(serializers.ModelSerializer):
             'id': project.id,
             'title': project.title,
             'description': project.description,
-            'start_date': project.start_date,
+            'status': project.status,
             'deadline': project.deadline,
-            'status': project.status
+            'created_at': project.created_at,
         }
 
     def validate(self, attrs):
