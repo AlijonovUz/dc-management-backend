@@ -20,13 +20,13 @@ class Status(models.TextChoices):
 
 class PaymentMethod(models.TextChoices):
     CASH = 'cash', 'Naqd pul'
-    CARD = 'card', 'Karta'
+    CARD = 'card', 'Karta raqam orqali'
 
 
 class ExpenseType(models.TextChoices):
-    WITHDRAWAL = 'withdrawal', 'Pulni yechib olish'
-    COMPANY_EXPENSE = 'company', 'Kompaniya uchun'
-    OTHER = 'other', 'Boshqa'
+    WITHDRAWAL = 'withdrawal', 'Mablag\' chiqarish'
+    COMPANY_EXPENSE = 'company', 'Kompaniya xarajatlari'
+    OTHER = 'other', 'Boshqa xarajatlar'
 
 
 class TransactionType(models.TextChoices):
