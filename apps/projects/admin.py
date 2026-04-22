@@ -93,13 +93,6 @@ class TaskAdmin(ModelAdmin):
         return format_html('<b style="color: {};">{}</b>', color, obj.get_type_display())
 
 
-@admin.register(TaskAttachment)
-class TaskAttachmentAdmin(ModelAdmin):
-    list_display = ('id', 'task', 'file', 'created_at')
-    list_display_links = ('id', 'task')
-    search_fields = ('task__title', 'file')
-
-
 @admin.register(Meeting)
 class MeetingAdmin(ModelAdmin):
     list_display = ('uid', 'title', 'project', 'organizer', 'start_time', 'is_completed')
