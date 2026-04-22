@@ -87,17 +87,25 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserShortSerializer(serializers.ModelSerializer):
+    region = serializers.CharField(source='region.name', read_only=True, default=None)
+    district = serializers.CharField(source='district.name', read_only=True, default=None)
+    position = serializers.CharField(source='position.name', read_only=True, default=None)
+
     class Meta:
         model = User
-        fields = ('id', 'avatar', 'username', 'phone_number', 'region', 'district', 'position', 'roles', 'date_joined',
-                  'is_active')
+        fields = ('id', 'avatar', 'username', 'phone_number',
+                  'region', 'district', 'position', 'roles', 'date_joined')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    region = serializers.CharField(source='region.name', read_only=True, default=None)
+    district = serializers.CharField(source='district.name', read_only=True, default=None)
+    position = serializers.CharField(source='position.name', read_only=True, default=None)
+
     class Meta:
         model = User
-        fields = ('id', 'avatar', 'username', 'phone_number', 'passport_series', 'region', 'district', 'position', 'roles',
-                  'fixed_salary', 'balance', 'date_joined', 'change_password', 'is_active')
+        fields = ('id', 'avatar', 'username', 'phone_number', 'passport_series', 'region', 'district', 'position',
+                  'roles', 'fixed_salary', 'balance', 'date_joined', 'change_password')
 
 
 class UserStatsSerializer(serializers.Serializer):
@@ -270,8 +278,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             "district": user.district.name if user.district else None,
             "position": user.position.name if user.position else None,
             "roles": user.roles,
+            "date_joined": user.date_joined,
             "change_password": user.change_password,
-            "is_active": user.is_active,
         }
 
         return data
@@ -295,8 +303,8 @@ class MyTokenRefreshSerializer(TokenRefreshSerializer):
                 "district": user.district.name if user.district else None,
                 "position": user.position.name if user.position else None,
                 "roles": user.roles,
+                "date_joined": user.date_joined,
                 "change_password": user.change_password,
-                "is_active": user.is_active,
             }
         except User.DoesNotExist:
             pass
