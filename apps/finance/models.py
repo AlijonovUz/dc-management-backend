@@ -48,7 +48,6 @@ class ExpenseCategory(BaseModel):
 
 
 class ExpenseRequest(BaseModel):
-    uid = models.CharField(max_length=10, unique=True, editable=False, null=True, blank=True, verbose_name="UID")
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='expenses', verbose_name='Foydalanuvchi')
 
     project = models.ForeignKey(
@@ -133,8 +132,6 @@ class ExpenseRequest(BaseModel):
     def save(self, *args, **kwargs):
         self.full_clean()
         is_new = self.pk is None
-        if not self.uid:
-            self.uid = generate_unique_id('E', ExpenseRequest)
 
         if not is_new:
             old_instance = ExpenseRequest.objects.get(pk=self.pk)
@@ -164,7 +161,6 @@ class ExpenseRequest(BaseModel):
 
 
 class Ledger(BaseModel):
-    uid = models.CharField(max_length=10, unique=True, editable=False, null=True, blank=True, verbose_name="UID")
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='ledger_entries',
                              verbose_name='Foydalanuvchi')
     expense = models.ForeignKey(ExpenseRequest, on_delete=models.PROTECT, null=True, blank=True, verbose_name='Xarajat')
@@ -181,8 +177,6 @@ class Ledger(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        if not self.uid:
-            self.uid = generate_unique_id('L', Ledger)
         if self.pk:
             raise ValidationError({'detail': "Arxiv yozuvlarini tahrirlab bo'lmaydi!"})
         super().save(*args, **kwargs)
@@ -195,7 +189,6 @@ class Ledger(BaseModel):
 
 
 class Payroll(BaseModel):
-    uid = models.CharField(max_length=10, unique=True, editable=False, null=True, blank=True, verbose_name="UID")
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='payrolls', verbose_name='Foydalanuvchi')
     month = models.DateField(verbose_name='Oy')
 
@@ -240,8 +233,6 @@ class Payroll(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        if not self.uid:
-            self.uid = generate_unique_id('PY', Payroll)
         self.total_amount = self.fixed_salary + self.kpi_bonus - self.penalty_amount
 
         is_new = self.pk is None
