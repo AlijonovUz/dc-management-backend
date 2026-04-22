@@ -37,7 +37,7 @@ for model in models_to_hide:
 class CustomUserAdmin(ModelAdmin):
     form = UserAdminForm
 
-    list_display = ('id', 'username', 'district', 'role_colored', 'fixed_salary_formatted', 'balance_colored', 'is_active')
+    list_display = ('id', 'username', 'role_colored', 'fixed_salary_formatted', 'balance_colored', 'is_active')
     list_display_links = ('id', 'username')
     list_filter = ('is_active',)
     search_fields = ('username',)
