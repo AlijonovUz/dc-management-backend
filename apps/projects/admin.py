@@ -57,6 +57,7 @@ class ProjectAdmin(ModelAdmin):
             ProjectStatus.ACTIVE: 'blue',
             ProjectStatus.COMPLETED: 'green',
             ProjectStatus.CANCELLED: 'red',
+            ProjectStatus.OVERDUE: 'orange',
         }
         return format_html('<span style="color: {}; font-weight: bold;">{}</span>',
                            colors.get(obj.status, 'black'), obj.get_status_display())

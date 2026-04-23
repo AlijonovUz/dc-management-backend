@@ -98,6 +98,22 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
         super().perform_destroy(instance)
 
     @extend_schema(request=None)
+    @decorators.action(detail=True, methods=['post'], url_path='cancel')
+    def cancel_expense(self, request, pk=None):
+        expense = self.get_object()
+        
+        if expense.user != request.user:
+            raise PermissionDenied("Faqat so'rov yuborgan foydalanuvchi uni bekor qila oladi.")
+        
+        if expense.status != Status.PENDING:
+            raise ValidationError({'status': "Faqat 'Kutilmoqda' holatidagi so'rovni bekor qilish mumkin."})
+        
+        expense.status = Status.CANCELLED
+        expense.save()
+        
+        return Response({"message": "Xarajat so'rovi bekor qilindi."}, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None)
     @decorators.action(detail=True, methods=['post'], url_path='pay')
     def pay_expense(self, request, pk=None):
         expense = self.get_object()

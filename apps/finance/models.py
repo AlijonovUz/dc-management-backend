@@ -5,7 +5,6 @@ from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 
-from apps.common.utils import generate_unique_id
 from apps.common.models import BaseModel
 from apps.users.models import Role
 from apps.projects.models import Project
@@ -17,6 +16,7 @@ class Status(models.TextChoices):
     PENDING = 'pending', 'Kutilmoqda'
     PAID = 'paid', 'To\'landi'
     CONFIRMED = 'confirmed', 'Tasdiqlandi'
+    CANCELLED = 'cancelled', 'Bekor qilindi'
 
 
 class PaymentMethod(models.TextChoices):

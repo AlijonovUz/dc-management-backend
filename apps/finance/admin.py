@@ -49,7 +49,8 @@ class ExpenseRequestAdmin(ModelAdmin):
         colors = {
             Status.PENDING: 'orange',
             Status.PAID: 'blue',
-            Status.CONFIRMED: 'green'
+            Status.CONFIRMED: 'green',
+            Status.CANCELLED: 'red'
         }
         color = colors.get(obj.status, 'black')
         return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, obj.get_status_display())
