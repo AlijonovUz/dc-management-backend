@@ -72,7 +72,7 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
                 title="Yangi xarajat so'rovi",
                 message=msg,
                 type=NotificationType.FINANCE,
-                extra_data={'expense_id': expense.id, 'action': 'view_expense'}
+                extra_data={'expense_id': expense.id, 'action': 'open_expense'}
             ))
 
             broadcast_data.append({
@@ -80,7 +80,7 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
                 "title": "Yangi xarajat so'rovi",
                 "message": msg,
                 "type": "finance",
-                "extra_data": {'expense_id': expense.id, 'action': 'view_expense'}
+                "extra_data": {'expense_id': expense.id, 'action': 'open_expense'}
             })
 
         if notifications_to_bulk:
@@ -129,14 +129,6 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
         expense.paid_at = timezone.now()
         expense.save()
 
-        Notification.objects.create(
-            user=expense.user,
-            title="To'lov amalga oshirildi!",
-            message=f"Sizning {expense.amount:,.0f} miqdoridagi xarajatingiz to'landi. Iltimos, mablag'ni olganingizni tasdiqlang!",
-            type=NotificationType.FINANCE,
-            extra_data={'expense_id': expense.id, 'action': 'confirm_receipt'}
-        )
-
         return Response({"message": "To'lov muvaffaqiyatli amalga oshirildi. Xodimning tasdiqlanishi kutilmoqda."},
                         status=status.HTTP_200_OK)
 
@@ -161,7 +153,7 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
                 title="Xarajat tasdiqlandi.",
                 message=f"{expense.user.username} o'zining {expense.amount:,.0f} miqdoridagi xarajatini olganini tasdiqladi.",
                 type=NotificationType.FINANCE,
-                extra_data={'expense_id': expense.id}
+                extra_data={'expense_id': expense.id, 'action': 'confirm_receipt'}
             )
 
         return Response({"message": "Xarajatlar muvaffaqiyatli tasdiqlandi."},
