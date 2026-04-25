@@ -18,7 +18,7 @@ from apps.notifications.tasks import mass_notification_sender, notify_meeting_en
 
 from apps.common.mixins import SoftDeleteMixin, RoleBasedQuerySetMixin
 
-from .filters import TaskFilter
+from .filters import TaskFilter, ProjectFilter, MeetingFilter
 from .models import Project, ProjectStatus, Task, TaskAttachment, TaskStatus, Meeting, MeetingAttendance, \
     TaskRejectionFile
 from .serializers import (ProjectShortSerializer, ProjectSerializer, TaskSerializer, TaskAttachmentSerializer, \
@@ -52,7 +52,7 @@ class ProjectViewSet(RoleBasedQuerySetMixin, viewsets.ModelViewSet):
         filters.OrderingFilter
     ]
 
-    filterset_fields = ['status']
+    filterset_class = ProjectFilter
     search_fields = ['title', 'description']
     ordering_fields = ['status', 'deadline', 'created_at']
     ordering = ['-created_at']
@@ -414,6 +414,10 @@ class TaskAttachmentViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
 class MeetingViewSet(SoftDeleteMixin, viewsets.ModelViewSet):
     queryset = Meeting.objects.filter(is_active=True)
     serializer_class = MeetingSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = MeetingFilter
+    search_fields = ['title', 'description']
+    ordering_fields = ['start_time', 'created_at']
 
     def get_queryset(self):
         return super().get_queryset()

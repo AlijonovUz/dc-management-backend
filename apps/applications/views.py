@@ -50,13 +50,15 @@ class PositionViewSet(SoftDeleteMixin, ActiveObjectsMixin, viewsets.ModelViewSet
     serializer_class = PositionSerializer
 
 
+from apps.applications.filters import ApplicationFilter
+
 @extend_schema(tags=['Application'])
 class ApplicationView(ListCreateAPIView):
     serializer_class = ApplicationSerializer
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
     permission_classes = (AllowAny,)
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['status']
+    filterset_class = ApplicationFilter
     search_fields = ['full_name']
 
     def get_permissions(self):

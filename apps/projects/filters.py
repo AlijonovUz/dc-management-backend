@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from .models import Task
+from .models import Task, Project, Meeting
 
 
 class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):
@@ -38,3 +38,26 @@ class TaskFilter(filters.FilterSet):
         if value and getattr(self, 'request', None) and self.request.user.is_authenticated:
             return queryset.filter(assignee=self.request.user)
         return queryset
+
+    
+class ProjectFilter(filters.FilterSet):
+    class Meta:
+        model = Project
+        fields = {
+            'status': ['exact'],
+            'manager': ['exact'],
+            'is_active': ['exact'],
+            'deadline': ['date', 'date__gte', 'date__lte'],
+            'created_at': ['date', 'date__gte', 'date__lte'],
+        }
+
+
+class MeetingFilter(filters.FilterSet):
+    class Meta:
+        model = Meeting
+        fields = {
+            'project': ['exact'],
+            'organizer': ['exact'],
+            'is_completed': ['exact'],
+            'start_time': ['date', 'date__gte', 'date__lte'],
+        }
