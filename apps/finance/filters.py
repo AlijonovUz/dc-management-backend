@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from .models import ExpenseRequest, Payroll
+from .models import ExpenseRequest, Payroll, Ledger
 
 
 class ExpenseRequestFilter(filters.FilterSet):
@@ -41,6 +41,26 @@ class PayrollFilter(filters.FilterSet):
             'user__position': ['exact'],
             'month': ['exact', 'gte', 'lte'],
             'total_amount': ['exact', 'gte', 'lte'],
+        }
+
+    def filter_by_user_roles(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(user__roles__contains=[value])
+
+
+class LedgerFilter(filters.FilterSet):
+    roles = filters.CharFilter(method='filter_by_user_roles', label="Rollar")
+
+    class Meta:
+        model = Ledger
+        fields = {
+            'user': ['exact'],
+            'expense': ['exact'],
+            'payroll': ['exact'],
+            'transaction_type': ['exact'],
+            'amount': ['exact', 'gte', 'lte'],
+            'created_at': ['date', 'date__gte', 'date__lte'],
         }
 
     def filter_by_user_roles(self, queryset, name, value):

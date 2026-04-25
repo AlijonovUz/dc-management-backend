@@ -14,7 +14,7 @@ from apps.notifications.models import Notification, NotificationType
 from apps.notifications.tasks import mass_notification_sender
 from apps.common.mixins import SoftDeleteMixin, RoleBasedQuerySetMixin
 
-from .filters import ExpenseRequestFilter, PayrollFilter
+from .filters import ExpenseRequestFilter, PayrollFilter, LedgerFilter
 from .models import ExpenseRequest, Status, Role, Payroll, Ledger, ExpenseCategory
 from .serializers import ExpenseRequestSerializer, PayrollSerializer, LedgerSerializer, ExpenseCategorySerializer, \
     PayrollStatusUpdateSerializer
@@ -249,7 +249,6 @@ class PayrollViewSet(RoleBasedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
             "message": f"{payrolls.count()} ta oylik muvaffaqiyatli tasdiqlandi va balansga o'tkazildi."
         }, status=status.HTTP_200_OK)
 
-
 @extend_schema(tags=['Ledger'])
 class LedgerViewSet(RoleBasedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Ledger.objects.filter(is_active=True)
@@ -258,7 +257,7 @@ class LedgerViewSet(RoleBasedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     full_access_roles = [Role.SUPERADMIN, Role.ADMIN, Role.ACCOUNTANT, Role.AUDITOR]
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['transaction_type', 'user', 'expense', 'payroll']
+    filterset_class = LedgerFilter
     search_fields = ['description']
     ordering_fields = ['created_at', 'amount']
     ordering = ['-created_at']

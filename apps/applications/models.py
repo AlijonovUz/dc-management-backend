@@ -25,7 +25,6 @@ class Region(BaseModel):
 class District(BaseModel):
     region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name='districts', verbose_name="Viloyat")
     name = models.CharField(max_length=255, verbose_name="Nomi")
-    is_application = models.BooleanField(default=False, verbose_name="Ariza uchun ham ishlatilsinmi?")
 
     class Meta:
         verbose_name = "Tuman"
@@ -65,8 +64,6 @@ class Application(BaseModel):
 
     region = models.ForeignKey(Region, on_delete=models.PROTECT,
                                related_name='applications', verbose_name="Viloyat")
-    district = models.ForeignKey(District, on_delete=models.PROTECT, null=True, blank=True,
-                                 related_name='applications', verbose_name="Tuman")
 
     phone = models.CharField(max_length=20, validators=[phone_validator], verbose_name="Telefon raqami")
     telegram = models.CharField(max_length=255, null=True, blank=True, validators=[telegram_validator],
@@ -110,11 +107,6 @@ class Application(BaseModel):
 
     def clean(self):
         super().clean()
-        if self.district and self.region:
-            if self.district.region_id != self.region_id:
-                raise ValidationError({
-                    'district': "Tanlangan tuman ushbu viloyatga tegishli emas!"
-                })
 
     def save(self, *args, **kwargs):
         self.full_clean()

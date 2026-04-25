@@ -68,14 +68,14 @@ class ApplicationView(ListCreateAPIView):
 
     def get_queryset(self):
         return Application.objects.filter(is_active=True).select_related(
-            'region', 'district', 'position', 'reviewed_by'
+            'region', 'position', 'reviewed_by'
         )
 
 
 @extend_schema(tags=['Application'])
 class ApplicationDetailView(RetrieveUpdateAPIView):
     queryset = Application.objects.filter(is_active=True).select_related(
-        'region', 'district', 'position', 'reviewed_by'
+        'region', 'position', 'reviewed_by'
     )
     permission_classes = (IsAdmin | IsManager,)
     http_method_names = ('get', 'patch',)

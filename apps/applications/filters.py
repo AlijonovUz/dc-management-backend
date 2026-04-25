@@ -6,7 +6,6 @@ class ApplicationFilter(filters.FilterSet):
         model = Application
         fields = {
             'region': ['exact'],
-            'district': ['exact'],
             'position': ['exact'],
             'status': ['exact'],
             'is_student': ['exact'],

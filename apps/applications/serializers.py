@@ -14,7 +14,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class DistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = District
-        fields = ('id', 'region', 'name', 'is_application')
+        fields = ('id', 'region', 'name')
         read_only_fields = ('id',)
 
 
@@ -28,7 +28,7 @@ class PositionSerializer(serializers.ModelSerializer):
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
-        fields = ('id', 'full_name', 'birth_date', 'is_student', 'university', 'region', 'district',
+        fields = ('id', 'full_name', 'birth_date', 'is_student', 'university', 'region',
                   'phone', 'telegram', 'position', 'resume', 'extra_info', 'portfolio', 'status'
                   )
         read_only_fields = ('id', 'status')
