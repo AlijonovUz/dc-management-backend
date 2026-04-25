@@ -20,9 +20,10 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = UserFilter
     search_fields = ['username']
+    ordering_fields = ['username']
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
