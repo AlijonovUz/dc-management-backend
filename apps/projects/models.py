@@ -96,6 +96,7 @@ class Project(BaseModel):
     class Meta:
         verbose_name = "Loyiha "
         verbose_name_plural = "Loyihalar"
+        ordering = ['-created_at']
 
     def clean(self):
         super().clean()
@@ -160,6 +161,7 @@ class Task(BaseModel):
     class Meta:
         verbose_name = 'Vazifa '
         verbose_name_plural = 'Vazifalar'
+        ordering = ['-created_at']
 
     def clean(self):
         super().clean()
@@ -207,6 +209,7 @@ class TaskAttachment(BaseModel):
     class Meta:
         verbose_name = 'Vazifa fayli '
         verbose_name_plural = 'Vazifa fayllari'
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.file.name
@@ -219,6 +222,7 @@ class TaskRejectionFile(BaseModel):
     class Meta:
         verbose_name = 'Rad etish fayli '
         verbose_name_plural = 'Rad etish fayllari'
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.task.title} - Rad etish rasmi"
@@ -248,6 +252,7 @@ class Meeting(BaseModel):
     class Meta:
         verbose_name = 'Yig\'ilish '
         verbose_name_plural = 'Yig\'lishlar'
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -273,6 +278,7 @@ class MeetingAttendance(BaseModel):
         verbose_name = 'Yig\'ilishga qatnashish '
         verbose_name_plural = 'Yig\'ilishga qatnashishlar'
         unique_together = ('user', 'meeting')
+        ordering = ['-created_at']
 
     def __str__(self):
         meeting_title = self.meeting.title if self.meeting else "Noma'lum yig'ilish"

@@ -55,7 +55,6 @@ class ProjectViewSet(RoleBasedQuerySetMixin, viewsets.ModelViewSet):
     filterset_class = ProjectFilter
     search_fields = ['title', 'description']
     ordering_fields = ['status', 'deadline', 'created_at']
-    ordering = ['-created_at']
     full_access_roles = [Role.SUPERADMIN, Role.ADMIN, Role.AUDITOR]
 
     def get_permissions(self):
@@ -154,7 +153,6 @@ class TaskViewSet(RoleBasedQuerySetMixin, viewsets.ModelViewSet):
     filterset_class = TaskFilter
     search_fields = ['assignee__username', 'uid', 'title', 'description']
     ordering_fields = ['deadline', 'priority', 'status', 'created_at']
-    ordering = ['deadline']
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
@@ -545,8 +543,8 @@ class MeetingViewSet(SoftDeleteMixin, viewsets.ModelViewSet):
 class MeetingAttendanceViewSet(SoftDeleteMixin, viewsets.ModelViewSet):
     queryset = MeetingAttendance.objects.filter(is_active=True)
     serializer_class = MeetingAttendanceSerializer
-    filter_backends = [filters.OrderingFilter]
-    ordering_filter = ['meeting']
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['meeting', 'user', 'is_attended']
 
     def get_queryset(self):
         return super().get_queryset()

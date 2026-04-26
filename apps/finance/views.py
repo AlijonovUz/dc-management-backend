@@ -45,7 +45,6 @@ class ExpenseRequestViewSet(SoftDeleteMixin, RoleBasedQuerySetMixin, viewsets.Mo
     ]
 
     ordering_fields = ['created_at', 'amount', 'paid_at', 'user__username']
-    ordering = ['-created_at']
     
     def get_role_based_queryset(self, queryset, user):
 
@@ -260,7 +259,6 @@ class LedgerViewSet(RoleBasedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     filterset_class = LedgerFilter
     search_fields = ['description']
     ordering_fields = ['created_at', 'amount']
-    ordering = ['-created_at']
 
     def get_role_based_queryset(self, queryset, user):
         return queryset.filter(user=user)
