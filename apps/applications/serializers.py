@@ -26,10 +26,16 @@ class PositionSerializer(serializers.ModelSerializer):
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    region_info = RegionSerializer(source='region', read_only=True)
+    position_info = PositionSerializer(source='position', read_only=True)
+
+    region = serializers.PrimaryKeyRelatedField(queryset=Region.objects.all(), write_only=True)
+    position = serializers.PrimaryKeyRelatedField(queryset=Position.objects.all(), write_only=True)
+
     class Meta:
         model = Application
-        fields = ('id', 'full_name', 'birth_date', 'is_student', 'university', 'region',
-                  'phone', 'telegram', 'position', 'resume', 'extra_info', 'portfolio', 'status'
+        fields = ('id', 'full_name', 'birth_date', 'is_student', 'university', 'region', 'region_info',
+                  'phone', 'telegram', 'position', 'position_info', 'resume', 'extra_info', 'portfolio', 'status'
                   )
         read_only_fields = ('id', 'status')
 
